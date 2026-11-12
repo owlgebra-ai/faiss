@@ -105,12 +105,12 @@ class Omeans:
 
         x is a float32 CUDA tensor of shape (n, d). Without init_centroids,
         the starting centroids are the k rows of x that Emeans would draw
-        with the same seed. The
-        labels are each row's assignment in the last pass (-1 for rows the
-        last pass did not visit, when nepochs is fractional), or None with
-        capture_assignments=False. Like e-means' labels, they come from
-        centroids that were still moving, and here from an approximate
-        search; call ``assign`` for exact nearest-centroid labels.
+        with the same seed. The labels are each row's assignment in the last
+        pass (-1 for rows the last pass did not visit, when nepochs is
+        fractional), or None with capture_assignments=False. Like e-means'
+        labels, they come from centroids that were still moving, and here
+        from an approximate search; call ``assign`` for labels from a full
+        search.
         """
         if self.centroids is not None:
             raise RuntimeError("create a new Omeans object for another run")
@@ -152,10 +152,11 @@ class Omeans:
         return self.centroids, self.assignments
 
     def assign(self, x):
-        """Return (squared distances, labels) of x's exact nearest centroids.
+        """Return (squared distances, labels) of x's nearest centroids.
 
-        The nearest centroid is found with FP16 rows and centroids, as in
-        training; the distance to it is then computed in float32.
+        Every row is compared with all k centroids, in FP16 as in training,
+        so a near-tie can resolve to the second nearest. The distance to the
+        chosen centroid is computed in float32.
         """
         if self.centroids is None:
             raise RuntimeError("train the model before calling assign")
